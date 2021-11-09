@@ -1,5 +1,7 @@
 package threads
 
+import scala.collection.mutable.ListBuffer
+
 /* 
  * Computer systems are expected to support multitasking. For example,
  * a personal computer is expected to play music, edit text, fetch and 
@@ -27,5 +29,21 @@ package threads
 
 class Threads {
   /* Starts threads to apply f to each element of array as to produce a new array bs */
-  def parallelMap[A, B: scala.reflect.ClassTag](f: A => B, as: Array[A]): Array[B] = ???
+  def parallelMap[A, B: scala.reflect.ClassTag](f: A => B, as: Array[A]): Array[B] = {
+    val threads = new Array[Thread](as.knownSize)
+    val bs = new Array[B](as.knownSize)
+    for ((a, i) <- as.view.zipWithIndex) {
+      val thread = new Thread {
+        override def run(): Unit = {
+          bs(i) = f(a)
+        }
+      }
+      threads(i) = thread
+      thread.start()
+    }
+    for (t <- threads) {
+      t.join()
+    }
+    bs
+  }
 }
